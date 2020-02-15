@@ -45,11 +45,15 @@ const int led1 = 12;
 const int led2 = 16;
 
 //Variables
-int ledState = LOW;
+int ledState1 = LOW;
+int ledState2 = LOW;
 int loadLed = HIGH;
-int buttonState;             
-int lastButtonState = LOW;
-unsigned long lastDebounceTime = 0;
+int buttonState1;             
+int lastButtonState1 = LOW;
+unsigned long lastDebounceTime1 = 0;
+int buttonState2;             
+int lastButtonState2 = LOW;
+unsigned long lastDebounceTime2 = 0;
 unsigned long debounceDelay = 50;
 
 void getWifi(){
@@ -125,7 +129,8 @@ void setup() {
   setRelay();
 
   dht.begin();
-  digitalWrite(led1, ledState);
+  digitalWrite(led1, ledState1);
+  digitalWrite(led1, ledState2);
   digitalWrite(led1, LOW);
   digitalWrite(led2, LOW);
 }
@@ -145,39 +150,58 @@ void loop() {
   Serial.print(h);
   Serial.println("%");
 
+  if(t > 25){
+    digitalWrite(thermostat, HIGH);
+    }
+  if(t < 24){
+    digitalWrite(thermostat, LOW);
+    }
+
   if (conn.connected()){
     sprintf(query, INSERT_SQL, now, t, h);
     //cursor->execute(query);
   }
-
-  int reading = digitalRead(button1);
   
-  if (reading != lastButtonState) {
+  //switch No.2
+  int reading1 = digitalRead(button1);
+  
+  if (reading1 != lastButtonState1) {
     // reset the debouncing timer
-    lastDebounceTime = millis();
+    lastDebounceTime1 = millis();
   }
 
-  if ((millis() - lastDebounceTime) > debounceDelay) {
-    if (reading != buttonState) {
-      buttonState = reading;
-      if (buttonState == HIGH) {
-        ledState = !ledState;
+  if ((millis() - lastDebounceTime1) > debounceDelay) {
+    if (reading1 != buttonState1) {
+      buttonState1 = reading1;
+      if (buttonState1 == HIGH) {
+        ledState1 = !ledState1;
       }
     }
   }
 
-  digitalWrite(led1, ledState);
-  lastButtonState = reading;
+  digitalWrite(led1, ledState1);
+  digitalWrite(relay1, !ledState1);
+  lastButtonState1 = reading1;
 
-  if (digitalRead(button2) == HIGH) {
-    // turn LED on:
-    digitalWrite(led2, HIGH);
-  } else {
-    // turn LED off:
-    digitalWrite(led2, LOW);
-  }
+  //switch No.2
+  int reading2 = digitalRead(button2);
   
-  //delay(1000);
-  int waitMin = 5;
-  //delay(waitMin*60*1000);
+  if (reading2 != lastButtonState2) {
+    // reset the debouncing timer
+    lastDebounceTime2 = millis();
+  }
+
+  if ((millis() - lastDebounceTime2) > debounceDelay) {
+    if (reading2 != buttonState2) {
+      buttonState2 = reading2;
+      if (buttonState2 == HIGH) {
+        ledState2 = !ledState2;
+      }
+    }
+  }
+
+  digitalWrite(led2, ledState2);
+  digitalWrite(relay2, !ledState2);
+  lastButtonState2 = reading2;
+ 
 }
