@@ -55,6 +55,8 @@ int buttonState2;
 int lastButtonState2 = LOW;
 unsigned long lastDebounceTime2 = 0;
 unsigned long debounceDelay = 50;
+unsigned long previousMillis = 0;
+const long interval = 10000;
 
 void getWifi(){
   WiFi.mode(WIFI_STA);
@@ -140,7 +142,7 @@ void loop() {
   Serial.println(ctime(&now));
   //Serial.println(now);
 
-  float t = dht.readTemperature();
+  float t = dht.readTemperature() - 5.4;  //temp tuning
   float h = dht.readHumidity();
 
   Serial.print("Temperature: ");
@@ -157,9 +159,14 @@ void loop() {
     digitalWrite(thermostat, LOW);
     }
 
-  if (conn.connected()){
-    sprintf(query, INSERT_SQL, now, t, h);
-    //cursor->execute(query);
+  unsigned long currentMillis = millis();
+
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    if (conn.connected()){
+      sprintf(query, INSERT_SQL, now, t, h);
+      cursor->execute(query);
+    }
   }
   
   //switch No.2
